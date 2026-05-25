@@ -5,8 +5,8 @@ const state = {
   lastErrors: []
 };
 
-const ADZUNA_APP_ID = "PASTE_YOUR_ADZUNA_APP_ID_HERE";
-const ADZUNA_APP_KEY = "PASTE_YOUR_ADZUNA_APP_KEY_HERE";
+const ADZUNA_APP_ID = "349733a8";
+const ADZUNA_APP_KEY = "598a2235885dacecccc194000bbb9120";
 const ADZUNA_COUNTRY = "at";
 
 const roleDictionary = [
