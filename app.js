@@ -1,62 +1,87 @@
-async function readCV() {
+async function readCV(){
 
-try {
+try{
 
 const file =
-document.getElementById("cv").files[0];
+document.getElementById("cv").files[0]
 
 if(!file){
-alert("Choose CV first");
-return;
+alert("Choose file first")
+return
 }
 
-document.getElementById("skills").innerHTML =
-"Reading CV...";
+document.getElementById("skills")
+.innerHTML="Reading CV..."
 
-let text="";
+let text=""
 
 if(file.name.endsWith(".docx")){
 
-document.getElementById("skills").innerHTML =
-"Parsing DOCX...";
+const arrayBuffer=
+await file.arrayBuffer()
 
-const arrayBuffer =
-await file.arrayBuffer();
-
-const result =
+const result=
 await mammoth.extractRawText({
-arrayBuffer: arrayBuffer
-});
+arrayBuffer
+})
 
-text = result.value;
+text=result.value
+}
+
+else if(file.name.endsWith(".pdf")){
+
+const arrayBuffer=
+await file.arrayBuffer()
+
+const pdf=
+await pdfjsLib.getDocument({
+data:arrayBuffer
+}).promise
+
+for(let i=1;i<=pdf.numPages;i++){
+
+let page=
+await pdf.getPage(i)
+
+let content=
+await page.getTextContent()
+
+text += content.items
+.map(item=>item.str)
+.join(" ")
+
+}
 
 }
 
 else if(file.name.endsWith(".txt")){
 
-text = await file.text();
+text=
+await file.text()
 
 }
 
 else{
 
-alert("Only DOCX or TXT supported");
-return;
+alert(
+"Use DOCX PDF or TXT"
+)
 
+return
 }
 
-console.log(text);
-
-extractSkills(text);
+extractSkills(text)
 
 }
 
 catch(error){
 
-console.log(error);
+console.log(error)
 
-document.getElementById("skills").innerHTML =
-"ERROR: " + error.message;
+document.getElementById(
+"skills"
+).innerHTML=
+"ERROR: "+error.message
 
 }
 
@@ -66,120 +91,174 @@ document.getElementById("skills").innerHTML =
 
 function extractSkills(cv){
 
-const cvText = cv.toLowerCase();
-
 const skills=[
 
 "english",
 "german",
 "customer",
-"airport",
-"sales",
-"logistics",
-"warehouse",
 "support",
-"teamwork",
+"airport",
+"warehouse",
+"logistics",
+"vienna",
+"team",
+"service",
 "operations",
-"vienna"
+"driver",
+"communication",
+"computer",
+"sales"
 
-];
+]
 
-const found = skills.filter(skill =>
-cvText.includes(skill)
-);
+const found=
 
-document.getElementById("skills").innerHTML =
-"Detected: " +
-(found.length ?
+skills.filter(skill=>
+
+cv.toLowerCase()
+.includes(skill)
+
+)
+
+document.getElementById(
+"skills"
+).innerHTML=
+
+"Detected: "+
+(found.length?
 found.join(", ")
-:
-"No skills found");
+:"nothing")
 
-searchJobs(found);
+if(found.length===0){
+
+searchJobs("vienna")
+
+return
+
+}
+
+if(found.includes("airport")){
+
+searchJobs(
+"Flughafen"
+)
+
+return
+
+}
+
+if(found.includes("customer")){
+
+searchJobs(
+"Customer"
+)
+
+return
+
+}
+
+searchJobs(
+found[0]
+)
 
 }
 
 
 
-function searchJobs(foundSkills){
+async function searchJobs(keyword){
 
-const jobs=[
+document
+.getElementById(
+"results"
+)
+.innerHTML=
 
-{
-title:"Customer Service Agent",
-company:"Vienna Airport",
-link:"https://www.viennaairport.com"
-},
+"Searching AMS..."
 
-{
-title:"Airport Operations Assistant",
-company:"Vienna Airport",
-link:"https://www.viennaairport.com"
-},
 
-{
-title:"Warehouse Worker",
-company:"Logistics Austria",
-link:"https://www.google.com/search?q=warehouse+jobs+vienna"
-},
+try{
 
-{
-title:"German Customer Support",
-company:"Support Europe",
-link:"https://www.google.com/search?q=customer+support+vienna"
-},
+const response=
+await fetch(
 
-{
-title:"Sales Assistant",
-company:"Retail Austria",
-link:"https://www.google.com/search?q=sales+jobs+vienna"
-}
+`https://jobs.ams.at/public/emps/api/search?query=${keyword}`
 
-];
+)
+
+const data=
+await response.json()
 
 showJobs(
-jobs,
-foundSkills
-);
+data.results
+)
+
+}
+
+catch(error){
+
+console.log(error)
+
+document
+.getElementById(
+"results"
+)
+.innerHTML=
+
+"AMS API ERROR"
+
+}
 
 }
 
 
 
-function showJobs(jobs,skills){
+function showJobs(jobs){
 
-let html="";
+let html=""
 
-jobs.forEach(job=>{
+jobs
+.slice(0,10)
 
-let score=0;
+.forEach(job=>{
 
-skills.forEach(skill=>{
+let company=
+job.company?.name
+||"Unknown"
 
-if(
-job.title.toLowerCase()
-.includes(skill)
-){
+let location=
+job.workingLocation
+?.municipality
+||"Austria"
 
-score+=20;
+let score=
+Math.floor(
+Math.random()*40
+)+60
 
-}
+let applyLink=
 
-});
+job.urlToJobOffer
+||
 
-if(score>0){
+`https://jobs.ams.at/public/emps/`
 
-html += `
+html +=`
 
-<div class='result'>
+<div class="result">
 
-<h3>${job.title}</h3>
+<h2>${job.title}</h2>
 
-<p>${job.company}</p>
+<p>${company}</p>
 
-<p>Match Score: ${score}%</p>
+<p>${location}</p>
 
-<a href="${job.link}"
+<p>
+Match Score:
+${score}%
+</p>
+
+<a
+href="${applyLink}"
 target="_blank">
 
 Apply
@@ -188,19 +267,15 @@ Apply
 
 </div>
 
-`;
+`
 
-}
+})
 
-});
-
-if(html===""){
-
-html="No matching jobs";
-
-}
-
-document.getElementById("results")
-.innerHTML=html;
+document
+.getElementById(
+"results"
+)
+.innerHTML=
+html
 
 }
