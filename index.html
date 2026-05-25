@@ -1,28 +1,53 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>ECOROLLER JOB HUNTER</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ECOROLLER AI JOB HUNTER</title>
 
 <style>
 
 body{
-background:black;
+background:#111;
 color:#00ff88;
-font-family:monospace;
-padding:40px;
+font-family:Arial,sans-serif;
+padding:20px;
+}
+
+.container{
+max-width:1000px;
+margin:auto;
 }
 
 button{
-padding:12px;
-margin-top:20px;
+padding:12px 20px;
+font-size:16px;
+cursor:pointer;
+background:#00ff88;
+border:none;
+margin-bottom:20px;
 }
 
-.result{
-border:1px solid #00ff88;
-padding:10px;
-margin:10px;
+.card{
+border:1px solid #333;
+padding:15px;
+margin:15px 0;
+background:#1a1a1a;
+border-radius:10px;
+}
+
+.company{
+color:#aaa;
+font-size:14px;
+}
+
+.title{
+font-size:22px;
+margin-bottom:10px;
+}
+
+.status{
+margin:15px 0;
 }
 
 </style>
@@ -31,27 +56,244 @@ margin:10px;
 
 <body>
 
+<div class="container">
+
 <h1>ECOROLLER AI JOB HUNTER</h1>
 
-<input
-type="file"
-id="cv"
-/>
+<div id="status" class="status">
 
-<button onclick="readCV()">
+Ready...
+
+</div>
+
+<button id="scanBtn">
 
 SCAN JOBS
 
 </button>
 
 <div id="results"></div>
-<div id="skills"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+</div>
 
-<script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
+<script>
 
-<script src="app.js"></script>
+function setStatus(text){
+
+document.getElementById(
+"status"
+).innerText=text;
+
+}
+
+function cleanHTML(text){
+
+const div=document.createElement(
+"div"
+);
+
+div.innerHTML=text;
+
+return div.textContent || "";
+
+}
+
+
+async function searchAMS(
+jobTitle,
+location,
+locationId
+){
+
+try{
+
+setStatus(
+"Connecting AMS..."
+);
+
+const url=
+`https://jobs.ams.at/public/emps/api/search?`+
+`query=${encodeURIComponent(jobTitle)}`+
+`&location=${encodeURIComponent(location)}`+
+`&locationId=${locationId}`+
+`&vicinity=20`+
+`&page=1`+
+`&pageSize=12`+
+`&sortField=_SCORE`+
+`&jobOfferTypes=BA`+
+`&jobOfferTypes=BZ`+
+`&jobOfferTypes=IJ`+
+`&jobOfferTypes=SB_WKO`+
+`&jobOfferTypes=TN`;
+
+console.log(
+"AMS URL:",
+url
+);
+
+const response=
+await fetch(url);
+
+if(!response.ok){
+
+throw new Error(
+`AMS ERROR ${response.status}`
+);
+
+}
+
+const data=
+await response.json();
+
+console.log(
+"AMS DATA:",
+data
+);
+
+return data.results || [];
+
+}
+
+catch(error){
+
+console.error(error);
+
+setStatus(
+"AMS API ERROR"
+);
+
+return [];
+
+}
+
+}
+
+
+
+function displayJobs(jobs){
+
+const container=
+document.getElementById(
+"results"
+);
+
+container.innerHTML="";
+
+if(jobs.length===0){
+
+container.innerHTML=
+"<h3>No jobs found</h3>";
+
+return;
+
+}
+
+jobs.forEach(job=>{
+
+const card=
+document.createElement(
+"div"
+);
+
+card.className=
+"card";
+
+card.innerHTML=`
+
+<div class="title">
+
+${job.title}
+
+</div>
+
+<div class="company">
+
+${job.company?.name || "Unknown"}
+
+</div>
+
+<br>
+
+<div>
+
+Location:
+${job.workingLocation?.municipality || ""}
+
+</div>
+
+<br>
+
+<div>
+
+${cleanHTML(
+job.summary
+).substring(0,500)}
+
+</div>
+
+`;
+
+container.appendChild(
+card
+);
+
+});
+
+}
+
+
+
+async function scanJobs(){
+
+setStatus(
+"Scanning..."
+);
+
+/*
+temporary hardcoded values
+replace later with AI output
+*/
+
+const detectedOccupation=
+"FlughafenarbeiterIn";
+
+const location=
+"Wien,Donaustadt, Wien";
+
+const locationId=
+"TOWN_17244";
+
+
+const jobs=
+await searchAMS(
+detectedOccupation,
+location,
+locationId
+);
+
+
+displayJobs(
+jobs
+);
+
+
+setStatus(
+`${jobs.length} jobs found`
+);
+
+}
+
+
+document
+.getElementById(
+"scanBtn"
+)
+.addEventListener(
+"click",
+scanJobs
+);
+
+</script>
 
 </body>
 </html>
