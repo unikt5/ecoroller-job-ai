@@ -93,16 +93,29 @@ document
 
 function extractSkills(cv){
 
+console.log(cv)
+
+const cvText =
+cv.toLowerCase()
+
 const skills=[
 
 "english",
 "german",
-"warehouse",
-"logistics",
+"customer service",
+"sales",
 "airport",
-"customer",
+"vienna",
+"logistics",
+"teamwork",
+"support",
+"technical",
 "python",
-"javascript"
+"javascript",
+"ai",
+"warehouse",
+"operations",
+"communication"
 
 ]
 
@@ -110,8 +123,7 @@ const found=
 
 skills.filter(skill=>
 
-cv.toLowerCase()
-.includes(
+cvText.includes(
 skill.toLowerCase()
 )
 
@@ -125,132 +137,16 @@ document
 
 "Detected: "
 +
-found.join(", ")
+(found.length
+?found.join(", ")
+:"No skills found")
 
-if(found.length===0){
-
-document
-.getElementById(
-"results"
-)
-.innerHTML=
-
-"No skills found"
-
-return
-
-}
+if(found.length>0){
 
 searchJobs(
 found[0]
 )
 
 }
-
-
-
-async function searchJobs(skill){
-
-document
-.getElementById(
-"results"
-)
-.innerHTML=
-
-"Searching jobs..."
-
-
-try{
-
-const response=
-await fetch(
-"https://arbeitnow.com/api/job-board-api"
-)
-
-const data=
-await response.json()
-
-showJobs(
-data.data,
-skill
-)
-
-}
-
-catch(error){
-
-document
-.getElementById(
-"results"
-)
-.innerHTML=
-
-"API ERROR"
-
-console.log(error)
-
-}
-
-}
-
-
-
-function showJobs(
-jobs,
-skill
-){
-
-let html=""
-
-jobs
-.filter(job=>
-
-job.title
-.toLowerCase()
-.includes(
-skill.toLowerCase()
-)
-
-)
-
-.slice(0,5)
-
-.forEach(job=>{
-
-html+=`
-
-<div class='result'>
-
-<h3>${job.title}</h3>
-
-<p>${job.company_name}</p>
-
-<a
-href="${job.url}"
-target="_blank">
-
-Apply
-
-</a>
-
-</div>
-
-`
-
-})
-
-if(html===""){
-
-html=
-"No matching jobs"
-
-}
-
-document
-.getElementById(
-"results"
-)
-.innerHTML=
-html
 
 }
