@@ -1,15 +1,33 @@
 async function readCV(){
 
+try{
+
 let file =
 document
 .getElementById("cv")
 .files[0]
 
-if(!file) return
+if(!file){
+
+alert("Choose file first")
+return
+
+}
+
+document
+.getElementById("skills")
+.innerHTML=
+"Reading CV..."
+
 
 let text=""
 
 if(file.name.endsWith(".docx")){
+
+document
+.getElementById("skills")
+.innerHTML=
+"Parsing DOCX..."
 
 const arrayBuffer=
 await file.arrayBuffer()
@@ -35,34 +53,56 @@ await file.text()
 else{
 
 alert(
-"Only DOCX or TXT for now"
+"Only .docx or .txt supported"
 )
 
 return
 
 }
 
-console.log(text)
+console.log(
+"EXTRACTED:"
+)
+
+console.log(
+text
+)
 
 extractSkills(text)
 
 }
+
+catch(error){
+
+console.log(error)
+
+document
+.getElementById(
+"skills"
+)
+.innerHTML=
+
+"ERROR: "
++error.message
+
+}
+
+}
+
 
 
 function extractSkills(cv){
 
 const skills=[
 
-"warehouse",
-"logistics",
 "english",
 "german",
+"warehouse",
+"logistics",
+"airport",
+"customer",
 "python",
-"javascript",
-"forklift",
-"customer service",
-"sales",
-"airport"
+"javascript"
 
 ]
 
@@ -87,7 +127,19 @@ document
 +
 found.join(", ")
 
-if(found.length>0){
+if(found.length===0){
+
+document
+.getElementById(
+"results"
+)
+.innerHTML=
+
+"No skills found"
+
+return
+
+}
 
 searchJobs(
 found[0]
@@ -95,10 +147,20 @@ found[0]
 
 }
 
-}
 
 
 async function searchJobs(skill){
+
+document
+.getElementById(
+"results"
+)
+.innerHTML=
+
+"Searching jobs..."
+
+
+try{
 
 const response=
 await fetch(
@@ -114,6 +176,23 @@ skill
 )
 
 }
+
+catch(error){
+
+document
+.getElementById(
+"results"
+)
+.innerHTML=
+
+"API ERROR"
+
+console.log(error)
+
+}
+
+}
+
 
 
 function showJobs(
@@ -134,7 +213,7 @@ skill.toLowerCase()
 
 )
 
-.slice(0,10)
+.slice(0,5)
 
 .forEach(job=>{
 
@@ -142,13 +221,9 @@ html+=`
 
 <div class='result'>
 
-<h3>
-${job.title}
-</h3>
+<h3>${job.title}</h3>
 
-<p>
-${job.company_name}
-</p>
+<p>${job.company_name}</p>
 
 <a
 href="${job.url}"
@@ -164,10 +239,18 @@ Apply
 
 })
 
+if(html===""){
+
+html=
+"No matching jobs"
+
+}
+
 document
 .getElementById(
 "results"
 )
-.innerHTML=html
+.innerHTML=
+html
 
 }
