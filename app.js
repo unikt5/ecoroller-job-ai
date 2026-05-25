@@ -3,88 +3,60 @@ async function readCV() {
 try {
 
 const file =
-document
-.getElementById("cv")
-.files[0]
+document.getElementById("cv").files[0];
 
-if (!file){
-
-alert("Choose CV first")
-return
-
+if(!file){
+alert("Choose CV first");
+return;
 }
 
-document
-.getElementById("skills")
-.innerHTML =
-"Reading CV..."
+document.getElementById("skills").innerHTML =
+"Reading CV...";
 
-
-let text = ""
-
+let text="";
 
 if(file.name.endsWith(".docx")){
 
-document
-.getElementById("skills")
-.innerHTML =
-"Parsing DOCX..."
+document.getElementById("skills").innerHTML =
+"Parsing DOCX...";
 
 const arrayBuffer =
-await file.arrayBuffer()
+await file.arrayBuffer();
 
 const result =
 await mammoth.extractRawText({
-arrayBuffer:arrayBuffer
-})
+arrayBuffer: arrayBuffer
+});
 
-text = result.value
+text = result.value;
 
 }
 
-else if(
-file.name.endsWith(".txt")
-){
+else if(file.name.endsWith(".txt")){
 
-text =
-await file.text()
+text = await file.text();
 
 }
 
 else{
 
-alert(
-"Only .docx and .txt currently supported"
-)
-
-return
+alert("Only DOCX or TXT supported");
+return;
 
 }
 
-console.log(
-"RAW CV:"
-)
+console.log(text);
 
-console.log(
-text
-)
-
-extractSkills(text)
+extractSkills(text);
 
 }
 
 catch(error){
 
-console.log(error)
+console.log(error);
 
-document
-.getElementById(
-"skills"
-)
-.innerHTML =
-
-"ERROR: "
-+error.message
+document.getElementById("skills").innerHTML =
+"ERROR: " + error.message;
 
 }
 
@@ -94,229 +66,121 @@ document
 
 function extractSkills(cv){
 
-const cvText =
-cv.toLowerCase()
-
+const cvText = cv.toLowerCase();
 
 const skills=[
 
 "english",
 "german",
 "customer",
-"customer service",
-"sales",
 "airport",
-"vienna",
+"sales",
 "logistics",
 "warehouse",
-"operations",
-"teamwork",
 "support",
-"python",
-"javascript",
-"technical",
-"communication",
-"ai"
+"teamwork",
+"operations",
+"vienna"
 
-]
+];
 
+const found = skills.filter(skill =>
+cvText.includes(skill)
+);
 
-const found =
+document.getElementById("skills").innerHTML =
+"Detected: " +
+(found.length ?
+found.join(", ")
+:
+"No skills found");
 
-skills.filter(skill=>
-
-cvText.includes(
-skill.toLowerCase()
-)
-
-)
-
-
-document
-.getElementById(
-"skills"
-)
-.innerHTML=
-
-"Detected: "
-
-+
-
-(found.length
-
-? found.join(", ")
-
-: "No skills found")
-
-
-console.log(
-"FOUND:"
-)
-
-console.log(
-found
-)
-
-
-if(found.length>0){
-
-searchJobs(
-found[0]
-)
-
-}
-else{
-
-document
-.getElementById(
-"results"
-)
-.innerHTML=
-
-"No matching skills"
-
-}
+searchJobs(found);
 
 }
 
 
 
-
-async function searchJobs(skill){
-
-document
-.getElementById(
-"results"
-)
-.innerHTML=
-
-"Searching jobs..."
-
-
-try{
-
+function searchJobs(foundSkills){
 
 const jobs=[
 
 {
-title:
-"Customer Service Agent - Vienna",
-
-company_name:
-"Airport Services",
-
-url:
-"https://jobs.example.com/1"
+title:"Customer Service Agent",
+company:"Vienna Airport",
+link:"https://www.viennaairport.com"
 },
 
 {
-title:
-"Warehouse Assistant",
-
-company_name:
-"Logistics Austria",
-
-url:
-"https://jobs.example.com/2"
+title:"Airport Operations Assistant",
+company:"Vienna Airport",
+link:"https://www.viennaairport.com"
 },
 
 {
-title:
-"German Customer Support",
-
-company_name:
-"Tech Europe",
-
-url:
-"https://jobs.example.com/3"
+title:"Warehouse Worker",
+company:"Logistics Austria",
+link:"https://www.google.com/search?q=warehouse+jobs+vienna"
 },
 
 {
-title:
-"Airport Operations Assistant",
-
-company_name:
-"Vienna Airport",
-
-url:
-"https://jobs.example.com/4"
+title:"German Customer Support",
+company:"Support Europe",
+link:"https://www.google.com/search?q=customer+support+vienna"
 },
 
 {
-title:
-"Sales Assistant",
-
-company_name:
-"Retail Group",
-
-url:
-"https://jobs.example.com/5"
+title:"Sales Assistant",
+company:"Retail Austria",
+link:"https://www.google.com/search?q=sales+jobs+vienna"
 }
 
-]
-
+];
 
 showJobs(
 jobs,
-skill
-)
-
-}
-
-catch(error){
-
-console.log(error)
-
-document
-.getElementById(
-"results"
-)
-.innerHTML=
-
-"Job search error"
-
-}
+foundSkills
+);
 
 }
 
 
 
-function showJobs(
-jobs,
-skill
+function showJobs(jobs,skills){
+
+let html="";
+
+jobs.forEach(job=>{
+
+let score=0;
+
+skills.forEach(skill=>{
+
+if(
+job.title.toLowerCase()
+.includes(skill)
 ){
 
-let html=""
+score+=20;
 
+}
 
-jobs
-.filter(job=>
+});
 
-job.title
-.toLowerCase()
-.includes(
-skill.toLowerCase()
-)
-
-)
-
-.forEach(job=>{
+if(score>0){
 
 html += `
 
 <div class='result'>
 
-<h3>
-${job.title}
-</h3>
+<h3>${job.title}</h3>
 
-<p>
-${job.company_name}
-</p>
+<p>${job.company}</p>
 
-<a
-target="_blank"
-href="${job.url}">
+<p>Match Score: ${score}%</p>
+
+<a href="${job.link}"
+target="_blank">
 
 Apply
 
@@ -324,25 +188,19 @@ Apply
 
 </div>
 
-`
-
-})
-
-
-if(html===""){
-
-html=
-
-"No matching jobs found"
+`;
 
 }
 
+});
 
-document
-.getElementById(
-"results"
-)
-.innerHTML=
-html
+if(html===""){
+
+html="No matching jobs";
+
+}
+
+document.getElementById("results")
+.innerHTML=html;
 
 }
