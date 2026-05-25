@@ -6,7 +6,7 @@ const state = {
 };
 
 const ADZUNA_APP_ID = "349733a8";
-const ADZUNA_APP_KEY = "598a2235885dacecccc194000bbb9120";
+const ADZUNA_APP_KEY = "766e5ff485735393e18e69cdf55c200a";
 const ADZUNA_COUNTRY = "at";
 
 const roleDictionary = [
